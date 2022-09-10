@@ -6,14 +6,37 @@
 [node name="Level" type="Node2D"]
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
-position = Vector2( 40, 16 )
+position = Vector2( 72, 16 )
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+position = Vector2( -40, -16 )
+current = true
+zoom = Vector2( 2, 2 )
 
 [node name="Walls" type="Node2D" parent="."]
 
 [node name="Wall" parent="Walls" instance=ExtResource( 2 )]
-_x = 10
+position = Vector2( 0, 152 )
+
+[node name="PolygonHitBox" parent="Walls/Wall" index="0"]
+color = Color( 0.164706, 0.439216, 0.54902, 1 )
 
 [node name="Wall2" parent="Walls" instance=ExtResource( 2 )]
-_x = 10
-_angle = -45
-_color = Color( 0, 0, 1, 0.501961 )
+position = Vector2( 0, 128 )
+rotation = -0.785398
+
+[node name="PolygonHitBox" parent="Walls/Wall2" index="0"]
+position = Vector2( 73.5391, 107.48 )
+scale = Vector2( 0.984924, 0.989959 )
+polygon = PoolVector2Array( 0, 0, 1000, 0, 1000, 40, 0, 40 )
+
+[node name="Wall3" parent="Walls" instance=ExtResource( 2 )]
+position = Vector2( 0, 152 )
+rotation = 4.71239
+
+[node name="PolygonHitBox" parent="Walls/Wall3" index="0"]
+polygon = PoolVector2Array( 0, 0, 1000, 0, 1000, 40, 0, 40 )
+
+[editable path="Walls/Wall"]
+[editable path="Walls/Wall2"]
+[editable path="Walls/Wall3"]

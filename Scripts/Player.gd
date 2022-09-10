@@ -1,7 +1,7 @@
 extends Actor
 
 onready var _animated_sprite = $AnimatedSprite
-onready var _hitbox = $HitBox
+onready var _hitbox = $PolygonHitBox
 
 class InputDirections:
     var move_left: bool = false
@@ -57,7 +57,7 @@ func _physics_process(delta):
 
     #get direction from input
     var input_directions := get_input_directions()
-    var on_ground := Game.check_walls_collision(self, Vector2.DOWN)
+    var on_ground := Game.check_walls_collision(self, Vector2.DOWN).size() > 0
 
     if on_ground:
         _jump_count = 0
@@ -108,8 +108,20 @@ func _physics_process(delta):
     _velocity.y = move_toward(_velocity.y, INF , _gravity * delta)
 
 
-    move_x(_velocity.x * delta, funcref(self, "on_collision_x"))
-    move_y(_velocity.y * delta, funcref(self, "on_collision_y"))
+    # var x_displacement = move_x(_velocity.x * delta, funcref(self, "on_collision_x"))
+    # print_debug(x_displacement.collisions)
+    # var y_displacement = move_y(_velocity.y * delta, funcref(self, "on_collision_y"))
+    var displacement = move(_velocity * delta)
+
+    # if on_ground and x_displacement.collisions.size() > 0:
+    #     print_debug([x_displacement.get_min_collision_y(), _hitbox.get_max_y()])
+    #     x_displacement.displacement = x_displacement.get_min_collision_x() - _hitbox.get_max_x() + 1
+    #     # y_displacement.displacement = -1 * (x_displacement.get_min_collision_y() - _hitbox.get_max_y())
+    #     y_displacement.displacement = x_displacement.get_min_collision_y() - _hitbox.get_max_y() + 1
+
+
+    # move_x_displacement(x_displacement.displacement)
+    # move_y_displacement(y_displacement.displacement)
 
 
 

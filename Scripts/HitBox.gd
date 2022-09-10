@@ -2,174 +2,111 @@ tool
 extends Node2D
 class_name HitBox
 
-export var _x = 0
-export var _y = 0
+export var _top_left: Vector2 = Vector2(0,0)
 export var _width = 16
 export var _height = 16
 export var _angle = 0
 export var _color = Color(0,0,1,.5)
 
 
-var _left setget ,get_left
-var _right setget ,get_right
-var _top setget ,get_top
-var _bottom setget ,get_bottom
+var _local_center : Vector2 setget ,get_local_center
+var _global_center : Vector2 setget ,get_global_center
 
-func get_left() -> int:
-    return global_position.x + _x
+# var _local_polygon : Vector2 setget ,get_local_polygon
+# var _global_polygon : Vector2 setget ,get_global_polygon
 
-func get_right() -> int:
-    return global_position.x + _x + _width
+func get_local_center() -> Vector2:
+    return Vector2(_top_left.x + round(_width / 2), _top_left.y + round(_height / 2))
 
-func get_top() -> int:
-    return global_position.y + _y
+func get_global_center() -> Vector2:
+    # return global_position + _local_center
+    var top_left : Vector2 = (global_position + _top_left)
+    return Vector2(top_left.x + round(_width / 2), top_left.y + round(_height / 2))
 
-func get_bottom() -> int:
-    return global_position.y + _y + _height
+# func get_local_polygon() -> Polygon2D:
+#     var vectors = PoolVector2Array([
+#         self._top_left,
+#         Vector2(self._top_left.x + self._width, self._top_left.y),
+#         Vector2(self._top_left.x + self._width, self._top_left.y + self._height),
+#         Vector2(self._top_left.x, self._top_left.y + self._height),
+#     ])
+#     return Polygon2D
+
+
+# func get_global_center() -> Vector2:
+#     # return global_position + _local_center
+#     var top_left : Vector2 = (global_position + _top_left)
+#     return Vector2(top_left.x + round(_width / 2), top_left.y + round(_height / 2))
+
+# func get_rotated_points(top_left: Vector2, width, height, angle) -> PoolVector2Array:
+func get_rotated_points(center: Vector2, width, height, angle) -> PoolVector2Array:
+
+    # var center : Vector2 = Vector2(top_left.x + (width / 2), top_left.y + (height / 2))
+    # var center : Vector2 = Vector2(center_coordinates.x, center_coordinates.y)
+
+    # create the (normalized) perpendicular vectors
+    var radians = deg2rad(angle)
+
+    var v1 : Vector2 = Vector2(cos(radians), sin(radians))
+    var v2 : Vector2 = Vector2(-v1.y, v1.x)  # rotate by 90
+
+    # scale them appropriately by the dimensions
+    v1 *= width / 2
+    v2 *= height / 2
+
+    # return the corners by moving the center of the rectangle by the vectors
+    var vectors = PoolVector2Array([
+        (center + v1 + v2),
+        (center - v1 + v2),
+        (center - v1 - v2),
+        (center + v1 - v2),
+    ])
+
+    #snap to pixel size
+    for i in range(0, vectors.size()):
+        vectors[i].x = round(vectors[i].x)
+        vectors[i].y = round(vectors[i].y)
+
+    return vectors
+
+
+# func get_rotated_points() -> PoolVector2Array:
+
+#     var radians = deg2radians(self._angle)
+#     var g = Geometry
+#     var a = polygon.new()
+#     a.rotate()
+
+
+
 
 func _draw():
 
-    # draw_rect(Rect2(_x, _y, _width, _height), _color)
+    # var self_top_left = Vector2(self._x, self._y)
+    var rotated = get_rotated_points(self._local_center, self._width, self._height, self._angle)
+    var colors = PoolColorArray([
+        self._color,
+    ])
+
+    draw_polygon(rotated, colors)
 
 
-    var radians = deg2rad(_angle)
-
-    # var source = Vector2(_x, _y)
-    # var target = Vector2(_x + _width, _y + _height)
-    # var from_around = source - target
-
-    # var post_rotation_x = (from_around.x * cos(radians)) - (from_around.y * sin(radians))
-    # var post_rotation_y = (from_around.x * sin(radians)) + (from_around.y * cos(radians))
-
-    # var new_rect_vector = target + Vector2(post_rotation_x, post_rotation_y)
-
-    # var rect = Rect2(new_rect_vector, Vector2(_width, _height))
-
-    var source = Vector2(_x, _y)
-    var center = Vector2(_x + (_width / 2), _y + (_height / 2))
-
-    var post_rotation_x = center.x + ((source.x - center.x) * cos(radians)) - ((source.y - center.y) * sin(radians))
-    var post_rotation_y = center.y + ((source.x - center.x) * sin(radians)) + ((source.y - center.y) * cos(radians))
-
-    var new_source = Vector2(post_rotation_x, post_rotation_y)
-    var rect = Rect2(Vector2.ZERO, Vector2(_width, _height))
-
-    draw_set_transform(new_source, radians, Vector2.ONE)
-    draw_rect(rect, _color)
-
-    # draw_set_transform(Vector2.ZERO, deg2rad(_angle), Vector2(_width, _height))
-    # var rect = Rect2(_x, _y, 1, 1)
-    # draw_rect(rect, _color)
-
-
-    # draw_set_transform(Vector2.ZERO, deg2rad(_angle), Vector2.ONE)
-
-    # var centered_vector = Vector2(Vector2(self._x + (self._width / 2), self._y + (self._height / 2))
-    # x = cos(angle)*x - sin(angle)*y y = cos(angle)*x + sin(angle)*y
-
-    # var array = [PoolVector2Array()]
-    # array[0].push_back(Vector2(12, 34))
-    # draw_colored_polygon
-
-    # # draw_set_transform(Vector2(self._x + (self._width / 2), self._y + (self._height / 2)), deg2rad(_angle), Vector2.ONE)
-    # # draw_set_transform(Vector2(self._x + (self._width / 2), self._y + (self._height / 2)), deg2rad(_angle), Vector2.ONE)
-
-    # draw_rect(Rect2(Vector2.ZERO, Vector2(_width, _height)), _color)
-
-func _physics_process(delta):
+func _physics_process(_delta):
     update()
 
 
-func intersects(other: HitBox, offset: Vector2) -> bool:
-    var result = ( 
-        (self._right + offset.x) > other._left && 
-        (self._left + offset.x) < other._right &&
-        (self._bottom + offset.y) > other._top && 
-        (self._top + offset.y) < other._bottom
-    )
-    
-    return result
+func intersects(other: HitBox, offset: Vector2) -> PoolVector2Array:
 
-func intersects2(other: HitBox, offset: Vector2) -> bool:
+    var g = Geometry
 
-    #https://phretaddin.github.io/post/rotated-rectangle-collisions/
+    # var self_top_left : Vector2 = Vector2(self._left + offset.x, self._top + offset.y)
+    var polygon_1 = self.get_rotated_points(self._global_center + offset, self._width, self._height, self._angle)
 
-    var self_half_width = self._width / 2;
-    var self_half_height = self._height / 2;
-    var other_half_width = other._width / 2;
-    var other_half_height = other._height / 2;
+    # var other_top_left : Vector2 = Vector2(other._left, other._top)
+    var polygon_2 = other.get_rotated_points(other._global_center, other._width, other._height, other._angle)
 
-    var self_x_plus_half_width = self._left + offset.x + self_half_width
-    var self_y_plus_half_height = self._top + offset.y + self_half_height
-    var other_x_plus_half_width = other._left + other_half_width
-    var other_y_plus_half_height = other._top + other_half_height
 
-    var self_cos_angle = cos(deg2rad(self._angle))
-    var self_sin_angle = sin(deg2rad(self._angle))
-    var other_cos_angle = cos(deg2rad(other._angle))
-    var other_sin_angle = sin(deg2rad(other._angle))
+    var polygon_intersection = g.intersect_polygons_2d(polygon_1, polygon_2)
+    # print_debug(polygon_intersection)
+    return polygon_intersection
 
-    var r1RX = (
-        other_cos_angle *
-        (self_x_plus_half_width - other_x_plus_half_width) +
-        other_sin_angle *
-        (self_y_plus_half_height - other_y_plus_half_height) +
-        other_x_plus_half_width -
-        self_half_width
-    )
-    var r1RY = (
-        -other_sin_angle *
-        (self_x_plus_half_width - other_x_plus_half_width) +
-        other_cos_angle *
-        (self_y_plus_half_height - other_y_plus_half_height) +
-        other_y_plus_half_height -
-        self_half_height
-    )
-
-    var r2RX = (
-        self_cos_angle *
-        (other_x_plus_half_width - self_x_plus_half_width) +
-        self_sin_angle *
-        (other_y_plus_half_height - self_y_plus_half_height) +
-        self_x_plus_half_width -
-        other_half_width
-    )
-
-    var r2RY = (
-        -self_sin_angle *
-        (other_x_plus_half_width - self_x_plus_half_width) +
-        self_cos_angle *
-        (other_y_plus_half_height - self_y_plus_half_height) +
-        self_y_plus_half_height -
-        other_half_height
-    )
-
-    var cosR1AR2A = abs(self_cos_angle * other_cos_angle + self_sin_angle * other_sin_angle)
-    var sinR1AR2A = abs(self_sin_angle * other_cos_angle - self_cos_angle * other_sin_angle)
-    var cosR2AR1A = abs(other_cos_angle * self_cos_angle + other_sin_angle * self_sin_angle)
-    var sinR2AR1A = abs(other_sin_angle * self_cos_angle - other_cos_angle * self_sin_angle)
-
-    var r1BBH = self._width * sinR1AR2A + self._height * cosR1AR2A
-    var r1BBW = self._width * cosR1AR2A + self._height * sinR1AR2A
-    var r1BBX = r1RX + self_half_width - r1BBW / 2
-    var r1BBY = r1RY + self_half_height - r1BBH / 2
-
-    draw_rect(Rect2(r1BBX, r1BBY, r1BBW, r1BBH), Color(1,1,1,-1))
-
-    var r2BBH = other._width * sinR2AR1A + other._height * cosR2AR1A
-    var r2BBW = other._width * cosR2AR1A + other._height * sinR2AR1A
-    var r2BBX = r2RX + other_half_width - r2BBW / 2
-    var r2BBY = r2RY + other_half_height - r2BBH / 2
-
-    draw_rect(Rect2(r2BBX, r2BBY, r2BBW, r2BBH), Color(1,1,1,-1))
-
-    return (
-        self._left + offset.x < r2BBX + r2BBW and 
-        self._left + offset.x + self._width > r2BBX and 
-        self._top + offset.y < r2BBY + r2BBH and 
-        self._top + offset.y + self._height > r2BBY and
-        other._left < r1BBX + r1BBW and
-        other._left + other._width > r1BBX and
-        other._top < r1BBY + r1BBH and
-        other._top + other._height > r1BBY
-    )

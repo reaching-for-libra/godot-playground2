@@ -11,7 +11,7 @@
 [ext_resource path="res://Sprites/Individual Sprites/adventurer-run-02.png" type="Texture" id=9]
 [ext_resource path="res://Sprites/Individual Sprites/adventurer-run-03.png" type="Texture" id=10]
 [ext_resource path="res://Sprites/Individual Sprites/adventurer-run-04.png" type="Texture" id=11]
-[ext_resource path="res://Scenes/HitBox.tscn" type="PackedScene" id=12]
+[ext_resource path="res://Scripts/PolygonHitBox.gd" type="Script" id=12]
 
 [sub_resource type="SpriteFrames" id=1]
 animations = [ {
@@ -33,9 +33,7 @@ script = ExtResource( 5 )
 frames = SubResource( 1 )
 animation = "idle"
 
-[node name="HitBox" parent="." instance=ExtResource( 12 )]
-_x = -5
-_y = -8
-_width = 10
-_height = 26
-_color = Color( 0.0313726, 0, 1, 0.501961 )
+[node name="PolygonHitBox" type="Polygon2D" parent="."]
+color = Color( 0.00392157, 0, 0, 1 )
+polygon = PoolVector2Array( 4, -9, 4, 17, -5, 17, -5, -9 )
+script = ExtResource( 12 )

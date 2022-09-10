@@ -18,10 +18,16 @@ _global_script_classes=[ {
 "class": "HitBox",
 "language": "GDScript",
 "path": "res://Scripts/HitBox.gd"
+}, {
+"base": "Polygon2D",
+"class": "PolygonHitBox",
+"language": "GDScript",
+"path": "res://Scripts/PolygonHitBox.gd"
 } ]
 _global_script_class_icons={
 "Actor": "",
-"HitBox": ""
+"HitBox": "",
+"PolygonHitBox": ""
 }
 
 [application]
