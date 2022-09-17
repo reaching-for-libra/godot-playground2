@@ -29,17 +29,19 @@ func move(amount: Vector2) -> Vector2:
     #     displacement.x = round(x_movement.displacement.x)
 
 
-    if displacement.y == 0:
-        var y_movement = move_y(amount.y)
-        if y_movement.collisions.size() > 0:
-            # displacement.y = 0
-            zero_remainder_y()
-        else:
-            displacement.y += round(y_movement.displacement.y)
+    # if displacement.y == 0:
+    var y_movement = move_y(amount.y + displacement.y)
+    if y_movement.collisions.size() > 0:
+        # displacement.y = 0
+        zero_remainder_y()
+    else:
+        displacement.y = round(y_movement.displacement.y)
     
+    # print_debug(["asdf",displacement])
     
-    move_x_displacement(displacement.x)
-    move_y_displacement(displacement.y)
+    move_x_displacement(int(displacement.x))
+    move_y_displacement(int(displacement.y))
+    # print_debug(global_position)
     return displacement
 
 
@@ -63,34 +65,66 @@ func move_x_exact(amount) -> Game.MovementResponse:
 
     var step = sign(amount)
 
+    # move up to the collision point, then recheck for collision, instead of just moving up one pixel_size
+    # will have to think about different collision shapes - only move up if the collision is 3 points and 
+    # not to steep a slot_updated
+
     while amount != 0:
+
         var displacement: Vector2 = Vector2.ZERO
-        var collisions: PoolVector2Array = Game.check_walls_collision(self, Vector2(amount, 0))
+        # print_debug("ground_check")
+        var on_ground: bool = Game.check_collisions(self, Vector2.DOWN, "Walls", true).size() > 0
+
+        # print_debug("collision_check")
+        var collisions: Array = Game.check_collisions(self, Vector2(response.displacement.x + step, 0), "Walls", true)
+
         if collisions.size() > 0:
-            var on_ground := Game.check_walls_collision(self, Vector2.DOWN).size() > 0
-            if true:
-                # var slope_angle = Vector2(floor(Game.get_min_collision_x(collisions)), floor(Game.get_max_collision_y(collisions))).angle()
-                var slope_angle = Vector2(floor(Game.get_min_collision_x(collisions)), floor(Game.get_max_collision_y(collisions))).angle_to(Vector2.UP)
-                # print_debug(rad2deg(slope_angle))
-                var move_distance = abs(amount)
-                var ascend_displacement_y = sin(slope_angle) * move_distance 
-                var ascend_displacement_x = cos(slope_angle) * move_distance * sign(amount)
-                displacement.x = floor(ascend_displacement_x)
-                displacement.y = floor(ascend_displacement_y)
-                print_debug(displacement)
+            if on_ground:
+                # print_debug("slope_check")
+
+                for i in range(0, collisions.size()):
+                    var collision_response_value: Game.CollisionResponseValue =  collisions[i]
+                    if collision_response_value.collision_polygon.size() > 0:
+                        var collision_min_y = Game.get_min_collision_y(collision_response_value.collision_polygon)
+                        var collision_min_x = Game.get_min_collision_x(collision_response_value.collision_polygon)
+                        var asdf = collision_min_y - self._hitbox.get_max_y() + displacement.y 
+                        var asdf2 = collision_min_x - self._hitbox.get_max_x() + displacement.x 
+                        displacement.x = asdf2
+                        displacement.y = asdf
+                        print_debug(["abbbccc", collision_response_value.collision_polygon, self._hitbox.get_max_y(), displacement.y, collision_min_y, asdf, displacement ])
+                        break
+
+                amount -= step
+                        
+                # if a.size() == 0:
+                #     # print_debug("HIiii")
+                #     displacement.y -= 1
+                #     displacement.x += step
+                #     amount -= step
+                # else:
+                #     zero_remainder_x()
+                #     amount = 0
             else:
-                response.displacement = Vector2.ZERO
                 zero_remainder_x()
+                amount = 0
         else:
-            displacement.x = round(amount)
-            # if collisions.size() > 0:
-        #     response.collisions += collisions
-        #     break
+            #check collision, one step over. 
+            if on_ground:
+                collisions = Game.check_collisions(self, Vector2(response.displacement.x + step, 1), "Walls")
+                if collisions.size() == 0:
+                    collisions = Game.check_collisions(self, Vector2(response.displacement.x + step, 2), "Walls")
+                    if collisions.size() > 0:
+                        displacement.y += 1
+
+            zero_remainder_x()
+            displacement.x += step
+            amount -= step
 
         response.displacement.x += displacement.x
         response.displacement.y += displacement.y
-        amount -= step
+
     
+    # print_debug(["a",response.displacement])
     return response
 
 
@@ -115,10 +149,12 @@ func move_y_exact(amount) -> Game.MovementResponse:
 
     while amount != 0:
 
-        var collisions : PoolVector2Array = Game.check_walls_collision(self, Vector2(0, amount))
+        # print_debug(response.displacement.y + step);
+        var collisions : Array = Game.check_collisions(self, Vector2(0, response.displacement.y + step), "Walls")
 
         if collisions.size() > 0:
-            response.collisions += collisions
+            # print_debug(response.displacement.y + step);
+            # response.collisions.append_array(collisions)
 
             # var y_array = []
 
@@ -143,9 +179,9 @@ func zero_remainder_x() -> void:
 func zero_remainder_y() -> void:
     _remainder.y = 0
 
-
 func move_x_displacement(displacement: int) -> void:
     global_position.x += displacement
+    print_debug(["hmm", self.global_position.x, self._hitbox.global_position.x])
 
 func move_y_displacement(displacement: int) -> void:
     global_position.y += displacement

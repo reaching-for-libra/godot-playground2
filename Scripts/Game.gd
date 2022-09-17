@@ -2,7 +2,15 @@ extends Node
 
 class MovementResponse:
     var displacement: Vector2 = Vector2.ZERO
-    var collisions: PoolVector2Array = []
+    var collisions: Array = []
+
+class CollisionResponseValue:
+    var hitbox: PolygonHitBox
+    var collision_polygon: PoolVector2Array = []
+
+    func _init(init_hitbox: PolygonHitBox, init_collision_polygon: PoolVector2Array):
+        self.hitbox = init_hitbox
+        self.collision_polygon = init_collision_polygon
 
 
 
@@ -42,15 +50,13 @@ func get_max_collision_y(collisions: PoolVector2Array):
     
     return max_y
 
-func check_walls_collision(entity, offset) -> PoolVector2Array:
-    var walls = get_tree().get_nodes_in_group("Walls")
-    var results = PoolVector2Array([])
+func check_collisions(entity: Node2D , offset: Vector2, group_to_check: String, print_log: bool = false) -> Array:
+    var nodes_to_check = get_tree().get_nodes_in_group(group_to_check)
+    var results = []
 
-    for wall in walls:
-        var intersections: PoolVector2Array = entity._hitbox.intersects(wall._hitbox, offset)
+    for node in nodes_to_check:
+        var intersections: PoolVector2Array = entity._hitbox.intersects(node._hitbox, offset, print_log)
         if intersections.size() > 0:
-            results += intersections
-            
+            results.append(CollisionResponseValue.new(node._hitbox, intersections))
     
     return results
-

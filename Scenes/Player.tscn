@@ -30,6 +30,7 @@ animations = [ {
 script = ExtResource( 5 )
 
 [node name="AnimatedSprite" type="AnimatedSprite" parent="."]
+visible = false
 frames = SubResource( 1 )
 animation = "idle"
 

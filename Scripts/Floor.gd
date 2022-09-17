@@ -20,6 +20,6 @@ func _ready():
 
     # _hitbox.rotate(self.rotation)
 
-    add_to_group("Walls")
+    add_to_group("Floors")
 
 

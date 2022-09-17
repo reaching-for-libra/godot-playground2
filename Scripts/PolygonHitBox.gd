@@ -48,23 +48,29 @@ func _physics_process(_delta):
 
 
 
-func intersects(other: PolygonHitBox, offset: Vector2) -> PoolVector2Array:
+func intersects(other: PolygonHitBox, offset: Vector2, print_log: bool = false) -> PoolVector2Array:
 
+    var offset_self_polygon = PoolVector2Array(self.polygon)
+    for i in range(0, offset_self_polygon.size()):
+        offset_self_polygon[i].x += self.global_position.x + offset.x
+        offset_self_polygon[i].y += self.global_position.y + offset.y
     
     #rotate the source
     var source_vector_array: PoolVector2Array = PoolVector2Array([])
 
     source_vector_array.append(
         Vector2(
-            self.global_position.x + self.polygon[0].x + offset.x, self.global_position.y + self.polygon[0].y + offset.y
+            round(offset_self_polygon[0].x), round(offset_self_polygon[0].y)
         )
     )
     for i in range(1, self.polygon.size()):
-        var rotated_point = self.polygon[i].rotated(self.get_parent().rotation)
+
+        var rotated_point = offset_self_polygon[i].rotated(self.get_parent().rotation)
         var point = Vector2(
-            self.global_position.x + rotated_point.x + offset.x,
-            self.global_position.y + rotated_point.y + offset.y
+            rotated_point.x,
+            rotated_point.y
         )
+
 
         source_vector_array.append(Vector2(round(point.x), round(point.y)))
         # source_vector_array.append(point)
@@ -75,7 +81,7 @@ func intersects(other: PolygonHitBox, offset: Vector2) -> PoolVector2Array:
 
     target_vector_array.append(
         Vector2(
-            other.global_position.x + other.polygon[0].x, other.global_position.y + other.polygon[0].y
+            round(other.global_position.x + other.polygon[0].x), round(other.global_position.y + other.polygon[0].y)
         )
     )
 
@@ -88,11 +94,16 @@ func intersects(other: PolygonHitBox, offset: Vector2) -> PoolVector2Array:
 
         target_vector_array.append(Vector2(round(point.x), round(point.y)))
         # target_vector_array.append(point)
+    
 
 
     #get intersections
     var g = Geometry
     var intersections = g.intersect_polygons_2d(source_vector_array, target_vector_array)
+
+    # if print_log:
+    #     print_debug(["intersection_test", self.get_parent().name, offset, self.get_parent().rotation_degrees, other.get_parent().rotation_degrees, source_vector_array, target_vector_array])
+    #     print_debug(["intersection_result", other.get_parent().name, intersections])
 
     var result: PoolVector2Array = []
 

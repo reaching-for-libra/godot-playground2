@@ -13,11 +13,11 @@ class InputDirections:
 var _velocity = Vector2.ZERO
 var _run_acceleration = 800
 
-var _max_jump_height = 25
-var _min_jump_height = 10
-var _time_to_jump_apex = .15
-var _max_jum_distance = 50
-var _max_run = _max_jum_distance / (2 * _time_to_jump_apex)
+var _max_jump_height = 1
+var _min_jump_height = 1
+var _time_to_jump_apex = .25
+var _max_jump_distance = 50
+var _max_run = _max_jump_distance / (2 * _time_to_jump_apex)
 
 #see suvat calculations; s = ut + 1/2at^2, v^2 = u^2 + 2at, where u=0, scalar looking at only y dir
 var _gravity : float = (2 * _max_jump_height) / pow(_time_to_jump_apex, 2)
@@ -32,39 +32,66 @@ var _local_hold_time = 0
 var _max_jumps = 2
 var _jump_count = 0
 
+var _input_directions := InputDirections.new()
 
 
-func get_input_directions() -> InputDirections:
+func _input(event):
 
-    var input_directions := InputDirections.new()
+    _input_directions = InputDirections.new()
 
     if Input.is_action_pressed("move_right") and not Input.is_action_pressed("move_left"):
-        input_directions.move_right = true
+        _input_directions.move_right = true
 
     elif Input.is_action_pressed("move_left") and not Input.is_action_pressed("move_right"):
-        input_directions.move_left = true
+        _input_directions.move_left = true
 
 
     if Input.is_action_just_pressed("jump"):
-        input_directions.jump_start = true
+        _input_directions.jump_start = true
     elif Input.is_action_pressed("jump"):
-        input_directions.jump_sustain = true
+        _input_directions.jump_sustain = true
         
-    return input_directions
+
 
 
 func _physics_process(delta):
 
+    var velocity = _velocity
+
+    #flip sprite based on direction. maintain direction if not moving laterally
+    if _input_directions.move_right:
+        _animated_sprite.flip_h = false 
+    elif _input_directions.move_left:
+        _animated_sprite.flip_h = true
+
+    if _input_directions.move_left or _input_directions.move_right:
+        _animated_sprite.play("run")
+    else:
+        _animated_sprite.play("idle")
+
     #get direction from input
-    var input_directions := get_input_directions()
-    var on_ground := Game.check_walls_collision(self, Vector2.DOWN).size() > 0
+    # var input_directions := get_input_directions()
+
+    # #flip sprite based on direction. maintain direction if not moving laterally
+    # if input_directions.move_right:
+    #     _animated_sprite.flip_h = false 
+    # elif input_directions.move_left:
+    #     _animated_sprite.flip_h = true
+
+    # if input_directions.move_left or input_directions.move_right:
+    #     _animated_sprite.play("run")
+    # else:
+    #     _animated_sprite.play("idle")
+
+
+    var on_ground := Game.check_collisions(self, Vector2.DOWN, "Walls").size() > 0
 
     if on_ground:
         _jump_count = 0
 
     #jump initiated
-    if input_directions.jump_start and (on_ground or _jump_count < _max_jumps):
-        _velocity.y = _max_jump_velocity
+    if _input_directions.jump_start and (on_ground or _jump_count < _max_jumps):
+        velocity.y = _max_jump_velocity
         _local_hold_time = _jump_hold_time
         _jump_count += 1
     
@@ -72,46 +99,44 @@ func _physics_process(delta):
     elif _local_hold_time > 0:
         
         #sustaining jump
-        if input_directions.jump_sustain:
+        if not _input_directions.jump_sustain:
 
             #if going less than the min jump velocity, bump up to min
-            if _velocity.y > _min_jump_velocity:
-                _velocity.y = _min_jump_velocity
+            if velocity.y > _min_jump_velocity:
+                velocity.y = _min_jump_velocity
         
         #no longer sustaining
         else:
             _local_hold_time = 0
 
-
     _local_hold_time -= delta
 
-    #flip sprite based on direction. maintain direction if not moving laterally
-    if input_directions.move_right:
-        _animated_sprite.flip_h = false 
-    elif input_directions.move_left:
-        _animated_sprite.flip_h = true
 
-    if input_directions.move_left or input_directions.move_right:
-        _animated_sprite.play("run")
-    else:
-        _animated_sprite.play("idle")
 
+    # _velocity.y += _gravity * delta
+    # _delta_velocity = (_old_velocity + _velocity) * 0.5 * delta
+    velocity.y += _gravity * delta
+    # _velocity.y = move_toward(0, INF if _velocity.y >= 0 else -INF, _velocity.y * delta)
 
     #lateral
-    var x_direction = 1 if input_directions.move_right else -1 if input_directions.move_left else 0
-    _velocity.x = move_toward(_velocity.x, _max_run * x_direction, _run_acceleration * delta)
+    var x_direction = 1 if _input_directions.move_right else -1 if _input_directions.move_left else 0
+    # _velocity.x = move_toward(0, x_direction, _run_acceleration * delta)
+    velocity.x = x_direction * _max_run * delta
+    # print_debug([_gravity,velocity])
+# 
 
-    # # drop faster on the way down
-    # if _velocity.y > 0:
-    #     _velocity.y *= 1.3
-
-    _velocity.y = move_toward(_velocity.y, INF , _gravity * delta)
+    # _velocity.x = move_toward(_old_velocity.x, _max_run * x_direction, _run_acceleration * delta)
+    # _velocity.y = move_toward(_old_velocity.y, INF , _gravity * delta)
 
 
     # var x_displacement = move_x(_velocity.x * delta, funcref(self, "on_collision_x"))
     # print_debug(x_displacement.collisions)
     # var y_displacement = move_y(_velocity.y * delta, funcref(self, "on_collision_y"))
-    var displacement = move(_velocity * delta)
+    # print_debug(_velocity)
+    var displacement = move(velocity)
+
+    _velocity = displacement
+    # print_debug(["after",_velocity])
 
     # if on_ground and x_displacement.collisions.size() > 0:
     #     print_debug([x_displacement.get_min_collision_y(), _hitbox.get_max_y()])
